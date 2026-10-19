@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard – Brasileirão Série A 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--tx:#0f172a;--mut:#64748b;--bd:#e2e8f0;--g:#16a34a;--b:#2563eb;--y:#ca8a04;--r:#dc2626;--gr:#94a3b8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#162033;--tx:#e2e8f0;--mut:#94a3b8;--bd:#263449;--g:#22c55e;--b:#3b82f6;--y:#eab308;--r:#ef4444;--gr:#64748b}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#162033;--tx:#e2e8f0;--mut:#94a3b8;--bd:#263449;--g:#22c55e;--b:#3b82f6;--y:#eab308;--r:#ef4444;--gr:#64748b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:20px;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+h1{margin:0 0 4px;font-size:1.5rem}small,.mut{color:var(--mut)}
+.kpis,.gr{display:grid;gap:14px;margin-top:16px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.gr{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;min-width:0}
+.kpi span{display:block;font-size:1.6rem;font-weight:700;margin-top:4px}
+.kpi em{font-style:normal;font-size:.8rem;color:var(--mut)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th:nth-child(2),td:nth-child(2){text-align:left}
+td:first-child{border-left:4px solid var(--c);text-align:center}
+.lg{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;margin-top:10px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+</style>
+</head>
+<body>
+<h1>⚽ Brasileirão Série A 2026</h1>
+<small>Classificação aproximada até os jogos de 18/out/2026 · fontes: Wikipédia, Futebol Interior e Aqui Esportes</small>
+
+<div class="kpis">
+<div class="card kpi">Líder<span id="k1">–</span><em id="k1b"></em></div>
+<div class="card kpi">Melhor ataque<span id="k2">–</span><em id="k2b"></em></div>
+<div class="card kpi">Melhor defesa<span id="k3">–</span><em id="k3b"></em></div>
+<div class="card kpi">Artilheiro<span>Kevin Viveros</span><em>21 gols</em></div>
+<div class="card kpi">Média de gols<span>2,67</span><em>819 gols em 307 jogos</em></div>
+</div>
+
+<div class="gr">
+<div class="card"><canvas id="c1"></canvas>
+<div class="lg"><span><i style="background:var(--g)"></i>Libertadores</span><span><i style="background:var(--b)"></i>Pré-Libertadores</span><span><i style="background:var(--y)"></i>Sul-Americana</span><span><i style="background:var(--gr)"></i>Meio da tabela</span><span><i style="background:var(--r)"></i>Rebaixamento</span></div></div>
+<div class="card"><canvas id="c2"></canvas></div>
+</div>
+
+<div class="card wrap" style="margin-top:16px"><table id="t">
+<thead><tr><th>#</th><th>Clube</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Aprov.</th></tr></thead><tbody></tbody></table>
+<p class="mut" style="font-size:.78rem;margin:10px 0 0">Os clubes têm entre 29 e 31 jogos disputados, por isso a ordem pode mudar quando as rodadas se igualarem. Fontes divergem em alguns jogos recentes; confira a tabela oficial na CBF.</p></div>
+
+<script>
+// [clube, P, J, V, E, D, GP, GC]
+const T=[["Flamengo",67,31,20,7,4,60,25],["Palmeiras",66,31,19,9,3,54,22],["Athletico-PR",53,31,15,8,8,49,37],["Cruzeiro",51,31,15,6,10,50,46],["Fluminense",51,31,14,9,8,49,39],["Atlético-MG",50,31,14,8,9,42,35],["Bahia",49,31,13,10,8,44,36],["Santos",42,30,11,9,10,46,45],["São Paulo",42,31,12,6,13,36,35],["Bragantino",40,30,11,7,12,38,35],["Coritiba",39,31,10,9,12,38,49],["Botafogo",36,30,9,9,12,43,48],["Mirassol",36,31,9,9,13,36,44],["Vitória",36,30,10,6,14,33,44],["Vasco",35,30,9,8,13,36,43],["Corinthians",32,30,8,8,14,31,38],["Internacional",32,31,7,11,13,33,40],["Grêmio",31,30,7,10,13,32,40],["Remo",25,30,5,10,15,33,48],["Chapecoense",18,29,3,9,17,30,61]];
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const zona=i=>i<4?"--g":i==4?"--b":i<11?"--y":i>=16?"--r":"--gr";
+const f=(x,s)=>(s&&x>0?"+":"")+x;
+const ataque=[...T].sort((a,b)=>b[6]-a[6])[0], defesa=[...T].sort((a,b)=>a[7]-b[7])[0];
+k1.textContent=T[0][0];k1b.textContent=T[0][1]+" pontos";
+k2.textContent=ataque[0];k2b.textContent=ataque[6]+" gols marcados";
+k3.textContent=defesa[0];k3b.textContent=defesa[7]+" gols sofridos";
+T.forEach((r,i)=>{const sg=r[6]-r[7],ap=Math.round(r[1]/(r[2]*3)*100);
+document.querySelector("#t tbody").insertAdjacentHTML("beforeend",`<tr><td style="--c:var(${zona(i)})">${i+1}</td><td>${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td>${f(sg,1)}</td><td>${ap}%</td></tr>`)});
+Chart.defaults.color=css("--mut");Chart.defaults.borderColor=css("--bd");
+new Chart(c1,{type:"bar",data:{labels:T.map(r=>r[0]),datasets:[{label:"Pontos",data:T.map(r=>r[1]),backgroundColor:T.map((r,i)=>css(zona(i)))}]},
+options:{indexAxis:"y",plugins:{legend:{display:false},title:{display:true,text:"Pontos por clube"}}}});
+new Chart(c2,{type:"bar",data:{labels:T.map(r=>r[0]),datasets:[{label:"Gols pró",data:T.map(r=>r[6]),backgroundColor:css("--g")},{label:"Gols contra",data:T.map(r=>r[7]),backgroundColor:css("--r")}]},
+options:{indexAxis:"y",plugins:{title:{display:true,text:"Ataque × defesa"}}}});
+</script>
+</body>
+</html>
